@@ -1,7 +1,5 @@
-# 上班鼓励器
+# 今日生活
 
-按秒计算今日工资的单页工具。公开地址：
+工钱按秒走，午饭交给转盘。
 
-https://wangchenyin.github.io/shangban-timer/
-
-月薪、上下班时间、单双休存在打开者自己的浏览器里，不会上传。
+https://wangchenyin.github.io/daily-life/
