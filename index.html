@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>上班鼓励器 · 分享</title>
+<title>上班鼓励器</title>
 <meta name="description" content="按秒计算今日工资。填写月薪、上下班时间和单双休，金额实时增加，并显示距下班和剩余工作时长。">
 <meta property="og:title" content="上班鼓励器 · 按秒看今天赚了多少">
 <meta property="og:description" content="填月薪和上下班时间，金额按秒跳动。距下班、剩余工作时长、今日还能赚，实时更新。">
@@ -29,47 +29,13 @@
     -webkit-font-smoothing:antialiased;
     min-height:100vh;
   }
-  header{
-    position:sticky;top:0;z-index:5;
-    height:58px;display:flex;align-items:center;justify-content:space-between;
-    padding:0 22px;
-    background:rgba(255,255,255,.92);
-    backdrop-filter:saturate(1.2) blur(10px);
-    border-bottom:1px solid var(--line);
+  body{
+    min-height:100vh;
+    display:flex;align-items:center;justify-content:center;
+    padding:24px 16px;
   }
-  .brand{display:flex;align-items:center;gap:10px;font-weight:650;letter-spacing:-.2px}
-  .mark{
-    width:28px;height:28px;border-radius:9px;
-    background:linear-gradient(160deg,#6d86ff,var(--ds) 55%,#3a4fe0);
-    display:grid;place-items:center;color:#fff;
-    box-shadow:0 4px 10px rgba(77,107,254,.28);
-  }
-  .brand span{font-size:16px}
-  .share-tag{font-size:13px;color:var(--muted)}
-  main{max-width:760px;margin:0 auto;padding:28px 16px 72px}
-
-  .msg{display:flex;margin:0 0 22px}
-  .msg.user{justify-content:flex-end}
-  .bubble{
-    max-width:min(520px,86%);
-    background:var(--bubble);
-    border-radius:16px 16px 4px 16px;
-    padding:12px 14px;
-    font-size:15px;line-height:1.65;
-    color:#2a2e38;
-  }
-  .bot{align-items:flex-start;gap:12px}
-  .avatar{
-    flex:0 0 32px;width:32px;height:32px;border-radius:50%;
-    background:linear-gradient(160deg,#7d93ff,var(--ds));
-    color:#fff;display:grid;place-items:center;
-    font-size:13px;font-weight:700;margin-top:2px;
-  }
-  .body{flex:1;min-width:0}
-  .who{font-size:13px;font-weight:650;margin-bottom:6px}
-  .lead{font-size:15px;line-height:1.7;color:#2c3140;margin-bottom:14px}
-
   .artifact{
+    width:min(760px,100%);
     background:var(--card);
     border:1px solid var(--line);
     border-radius:16px;
@@ -137,38 +103,9 @@
   }
   input:focus,select:focus{border-color:#b7c4ff;box-shadow:0 0 0 3px rgba(77,107,254,.15)}
   .hint{padding:0 16px 14px;font-size:12px;line-height:1.65;color:var(--muted)}
-
-  footer{
-    max-width:760px;margin:0 auto;padding:0 16px 28px;
-    font-size:12px;color:var(--muted);line-height:1.6;
-  }
 </style>
 </head>
 <body>
-<header>
-  <div class="brand">
-    <div class="mark" aria-hidden="true">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <path d="M3 9.2c0-3 2.2-5.4 5.1-5.4 2.4 0 4.2 1.5 4.6 3.6.8-.4 1.8-.2 2.3.6.4.6.3 1.4-.1 2-.6 2.4-2.8 4.2-5.6 4.2-3.4 0-6.3-2.2-6.3-5z" fill="#fff"/>
-        <circle cx="6.2" cy="8.1" r=".8" fill="#4D6BFE"/>
-      </svg>
-    </div>
-    <span>DeepSeek</span>
-  </div>
-  <div class="share-tag">分享的对话</div>
-</header>
-
-<main>
-  <div class="msg user">
-    <div class="bubble">帮我做一个上班鼓励器：按秒计算今日工资。填写月薪、上班时间、单双休，金额按秒增加，并动态显示距下班和剩余工作时间。</div>
-  </div>
-
-  <div class="msg bot">
-    <div class="avatar">D</div>
-    <div class="body">
-      <div class="who">DeepSeek</div>
-      <div class="lead">做好了。填月薪和上下班时间，今天已经赚到的钱会按秒往上跳。午休暂停，下班停在日薪。设置记在这台浏览器里，别人打开同一链接看到的是他们自己的数字。</div>
-
       <div class="artifact">
         <div class="art-bar">
           <b>上班鼓励器</b>
@@ -215,10 +152,6 @@
           <div class="hint">日薪 = 月薪 ÷ 本月实际工作天数。双休算周一至周五，单休算周一至周六，大小周的周六算半天。午休不计薪。</div>
         </details>
       </div>
-    </div>
-  </div>
-</main>
-<footer>这是一份可公开打开的分享页，版式参照 DeepSeek 的分享对话。不是 chat.deepseek.com 官方会话。金额只在你的浏览器里计算，不会上传。</footer>
 
 <script>
 (function(){
