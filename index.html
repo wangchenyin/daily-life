@@ -103,8 +103,8 @@
   .hint{padding:0 16px 14px;font-size:12px;line-height:1.65;color:var(--muted)}
 
   .wheel-wrap{display:flex;flex-direction:column;align-items:center;padding-top:8px}
-  .stage{position:relative;width:280px;height:280px}
-  canvas{width:280px;height:280px;border-radius:50%;display:block}
+  .stage{position:relative;width:320px;height:320px}
+  canvas{width:320px;height:320px;border-radius:50%;display:block}
   .pointer{
     position:absolute;left:50%;top:-2px;transform:translateX(-50%);
     width:0;height:0;
@@ -222,9 +222,9 @@
 (function(){
   "use strict";
   var KEY = "shangban-guliqi-v1";
-  var FOOD_KEY = "today-life-foods-v1";
+  var FOOD_KEY = "today-life-foods-v2";
   var DEFAULTS = { salary:20000, start:"09:00", end:"18:00", lunchStart:"12:00", lunchEnd:"13:00", rest:"double" };
-  var DEFAULT_FOODS = ["麻辣烫","黄焖鸡米饭","兰州拉面","沙县小吃","盖浇饭","过桥米线","饺子","汉堡","轻食沙拉","煲仔饭"];
+  var DEFAULT_FOODS = ["麻辣烫","黄焖鸡米饭","兰州拉面","沙县小吃","盖浇饭","过桥米线","水饺","汉堡","轻食沙拉","煲仔饭","牛肉面","重庆小面","酸辣粉","螺蛳粉","麻辣香锅","烤肉饭","蛋炒饭","猪脚饭","卤肉饭","韩式拌饭","咖喱饭","馄饨","肉夹馍","凉皮","冒菜","炸鸡"];
   var COLORS = ["#4D6BFE","#F0A04B","#3DBE8B","#E36B8A","#7C6BF0","#3EC6C6","#F08A5D","#5B8DEF","#C98412","#12A56A"];
   var cfg = Object.assign({}, DEFAULTS);
   var foods = DEFAULT_FOODS.slice();
@@ -397,11 +397,11 @@
       seen[name] = 1;
       out.push(name);
     });
-    return out.length >= 2 ? out.slice(0, 16) : null;
+    return out.length >= 2 ? out.slice(0, 40) : null;
   }
 
   function draw(){
-    var size = 280;
+    var size = 320;
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = size * dpr;
     canvas.height = size * dpr;
@@ -423,10 +423,12 @@
       ctx.translate(cx, cy);
       ctx.rotate(mid);
       ctx.fillStyle = "#fff";
-      ctx.font = "600 13px -apple-system, PingFang SC, sans-serif";
+      var fontSize = n > 20 ? 11 : n > 14 ? 12 : 13;
+      var maxLen = n > 20 ? 4 : n > 14 ? 4 : 6;
+      ctx.font = "600 " + fontSize + "px -apple-system, PingFang SC, sans-serif";
       ctx.textBaseline = "middle";
       var label = foods[i];
-      if(label.length > 6) label = label.slice(0, 6);
+      if(label.length > maxLen) label = label.slice(0, maxLen);
       if(Math.cos(mid) < 0){
         ctx.rotate(Math.PI);
         ctx.textAlign = "left";
