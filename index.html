@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>上班鼓励器 · 分享</title>
+<meta name="description" content="按秒计算今日工资。填写月薪、上下班时间和单双休，金额实时增加，并显示距下班和剩余工作时长。">
+<meta property="og:title" content="上班鼓励器 · 按秒看今天赚了多少">
+<meta property="og:description" content="填月薪和上下班时间，金额按秒跳动。距下班、剩余工作时长、今日还能赚，实时更新。">
+<meta property="og:type" content="website">
+<style>
+  :root{
+    --ds:#4D6BFE;
+    --ds-deep:#3B57E8;
+    --ink:#1a1d26;
+    --muted:#8a909c;
+    --line:#eceef3;
+    --bg:#ffffff;
+    --page:#f6f7fb;
+    --bubble:#f2f4f8;
+    --card:#ffffff;
+    --green:#12a56a;
+    --gold:#c98412;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--page);color:var(--ink)}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  header{
+    position:sticky;top:0;z-index:5;
+    height:58px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 22px;
+    background:rgba(255,255,255,.92);
+    backdrop-filter:saturate(1.2) blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-weight:650;letter-spacing:-.2px}
+  .mark{
+    width:28px;height:28px;border-radius:9px;
+    background:linear-gradient(160deg,#6d86ff,var(--ds) 55%,#3a4fe0);
+    display:grid;place-items:center;color:#fff;
+    box-shadow:0 4px 10px rgba(77,107,254,.28);
+  }
+  .brand span{font-size:16px}
+  .share-tag{font-size:13px;color:var(--muted)}
+  main{max-width:760px;margin:0 auto;padding:28px 16px 72px}
+
+  .msg{display:flex;margin:0 0 22px}
+  .msg.user{justify-content:flex-end}
+  .bubble{
+    max-width:min(520px,86%);
+    background:var(--bubble);
+    border-radius:16px 16px 4px 16px;
+    padding:12px 14px;
+    font-size:15px;line-height:1.65;
+    color:#2a2e38;
+  }
+  .bot{align-items:flex-start;gap:12px}
+  .avatar{
+    flex:0 0 32px;width:32px;height:32px;border-radius:50%;
+    background:linear-gradient(160deg,#7d93ff,var(--ds));
+    color:#fff;display:grid;place-items:center;
+    font-size:13px;font-weight:700;margin-top:2px;
+  }
+  .body{flex:1;min-width:0}
+  .who{font-size:13px;font-weight:650;margin-bottom:6px}
+  .lead{font-size:15px;line-height:1.7;color:#2c3140;margin-bottom:14px}
+
+  .artifact{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:16px;
+    box-shadow:0 8px 28px rgba(24,32,64,.05);
+    overflow:hidden;
+  }
+  .art-bar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 14px;border-bottom:1px solid var(--line);
+    background:#fbfbfd;font-size:12px;color:var(--muted);
+  }
+  .art-bar b{color:var(--ink);font-weight:650;font-size:13px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;margin-right:6px;box-shadow:0 0 0 3px rgba(18,165,106,.15)}
+  .pad{padding:18px 18px 16px}
+  .label{font-size:12px;color:var(--muted);letter-spacing:.3px}
+  .amount{
+    margin-top:4px;
+    font-size:clamp(40px,8vw,64px);
+    font-weight:760;letter-spacing:-1.5px;line-height:1.05;
+    font-variant-numeric:tabular-nums;
+    color:var(--ds);
+  }
+  .rate{
+    margin-top:8px;font-size:13px;color:var(--muted);
+    display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;
+    font-variant-numeric:tabular-nums;
+  }
+  .rate b{color:var(--ink);font-weight:650}
+  .status{
+    margin-top:12px;font-size:13px;color:#3d4454;
+    background:var(--ds-soft,#eef1ff);
+    background:#eef1ff;
+    border-radius:10px;padding:8px 10px;
+  }
+  .bar{height:8px;border-radius:99px;background:#eef0f5;margin-top:14px;overflow:hidden}
+  .fill{
+    height:100%;width:0;border-radius:99px;
+    background:linear-gradient(90deg,#7d93ff,var(--ds) 70%,#8b6bff);
+    transition:width .3s linear;
+  }
+  .barinfo{display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+  @media(min-width:640px){ .grid{grid-template-columns:repeat(4,1fr)} }
+  .mini{background:#f7f8fc;border-radius:12px;padding:12px 12px 11px}
+  .mini .k{font-size:12px;color:var(--muted)}
+  .mini .v{margin-top:5px;font-size:18px;font-weight:720;font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+  .mini.left .v{color:var(--green)}
+  .mini.pay .v{color:var(--gold)}
+  .tip{margin-top:12px;font-size:13px;line-height:1.7;color:#4b5160}
+  .tip strong{color:var(--ink);font-weight:650}
+
+  details.cfg{border-top:1px solid var(--line);background:#fbfbfd}
+  details.cfg summary{
+    cursor:pointer;list-style:none;padding:12px 16px;
+    font-size:13px;color:#3d4454;user-select:none;
+  }
+  details.cfg summary::-webkit-details-marker{display:none}
+  .cfgbody{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 14px}
+  @media(min-width:640px){ .cfgbody{grid-template-columns:repeat(3,1fr)} }
+  label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted)}
+  input,select{
+    background:#fff;border:1px solid #e3e6ee;color:var(--ink);
+    border-radius:10px;padding:9px 10px;font-size:14px;font-family:inherit;outline:none;
+    font-variant-numeric:tabular-nums;
+  }
+  input:focus,select:focus{border-color:#b7c4ff;box-shadow:0 0 0 3px rgba(77,107,254,.15)}
+  .hint{padding:0 16px 14px;font-size:12px;line-height:1.65;color:var(--muted)}
+
+  footer{
+    max-width:760px;margin:0 auto;padding:0 16px 28px;
+    font-size:12px;color:var(--muted);line-height:1.6;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="mark" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M3 9.2c0-3 2.2-5.4 5.1-5.4 2.4 0 4.2 1.5 4.6 3.6.8-.4 1.8-.2 2.3.6.4.6.3 1.4-.1 2-.6 2.4-2.8 4.2-5.6 4.2-3.4 0-6.3-2.2-6.3-5z" fill="#fff"/>
+        <circle cx="6.2" cy="8.1" r=".8" fill="#4D6BFE"/>
+      </svg>
+    </div>
+    <span>DeepSeek</span>
+  </div>
+  <div class="share-tag">分享的对话</div>
+</header>
+
+<main>
+  <div class="msg user">
+    <div class="bubble">帮我做一个上班鼓励器：按秒计算今日工资。填写月薪、上班时间、单双休，金额按秒增加，并动态显示距下班和剩余工作时间。</div>
+  </div>
+
+  <div class="msg bot">
+    <div class="avatar">D</div>
+    <div class="body">
+      <div class="who">DeepSeek</div>
+      <div class="lead">做好了。填月薪和上下班时间，今天已经赚到的钱会按秒往上跳。午休暂停，下班停在日薪。设置记在这台浏览器里，别人打开同一链接看到的是他们自己的数字。</div>
+
+      <div class="artifact">
+        <div class="art-bar">
+          <b>上班鼓励器</b>
+          <span><i class="dot"></i><span id="liveTag">实时</span></span>
+        </div>
+        <div class="pad">
+          <div class="label">今日已收入</div>
+          <div class="amount" id="amount">¥0.00</div>
+          <div class="rate">
+            <span>每秒 <b id="perSec">¥0.0000</b></span>
+            <span>每小时 <b id="perHour">¥0.00</b></span>
+            <span id="workDaysText">月工作 0 天</span>
+          </div>
+          <div class="status" id="statusText">正在计算…</div>
+          <div class="bar"><div class="fill" id="barFill"></div></div>
+          <div class="barinfo">
+            <span id="barLeft">已工作 0%</span>
+            <span id="barRight">今日目标 ¥0.00</span>
+          </div>
+          <div class="grid">
+            <div class="mini"><div class="k">距下班</div><div class="v" id="toEnd">--:--:--</div></div>
+            <div class="mini left"><div class="k">剩余工作时长</div><div class="v" id="leftWork">--:--:--</div></div>
+            <div class="mini pay"><div class="k">今日还能赚</div><div class="v" id="leftPay">¥0.00</div></div>
+            <div class="mini"><div class="k">日薪</div><div class="v" id="dayPay">¥0.00</div></div>
+          </div>
+          <div class="tip" id="tip">—</div>
+        </div>
+        <details class="cfg">
+          <summary>设置 · 月薪 / 上下班 / 单双休</summary>
+          <div class="cfgbody">
+            <label>月薪（元）<input id="salary" type="number" min="0" step="500" value="20000"></label>
+            <label>上班时间<input id="start" type="time" value="09:00"></label>
+            <label>下班时间<input id="end" type="time" value="18:00"></label>
+            <label>午休开始<input id="lunchStart" type="time" value="12:00"></label>
+            <label>午休结束<input id="lunchEnd" type="time" value="13:00"></label>
+            <label>休息制度
+              <select id="rest">
+                <option value="double">双休（周末全休）</option>
+                <option value="single">单休（周日休）</option>
+                <option value="bigsmall">大小周</option>
+              </select>
+            </label>
+          </div>
+          <div class="hint">日薪 = 月薪 ÷ 本月实际工作天数。双休算周一至周五，单休算周一至周六，大小周的周六算半天。午休不计薪。</div>
+        </details>
+      </div>
+    </div>
+  </div>
+</main>
+<footer>这是一份可公开打开的分享页，版式参照 DeepSeek 的分享对话。不是 chat.deepseek.com 官方会话。金额只在你的浏览器里计算，不会上传。</footer>
+
+<script>
+(function(){
+  "use strict";
+  var KEY = "shangban-guliqi-v1";
+  var DEFAULTS = { salary:20000, start:"09:00", end:"18:00", lunchStart:"12:00", lunchEnd:"13:00", rest:"double" };
+  var cfg = Object.assign({}, DEFAULTS);
+
+  function load(){
+    try{
+      var raw = localStorage.getItem(KEY);
+      if(raw){
+        var o = JSON.parse(raw);
+        if(o && typeof o === "object"){
+          for(var k in DEFAULTS){
+            if(o[k] !== undefined && o[k] !== null && o[k] !== "") cfg[k] = o[k];
+          }
+        }
+      }
+    }catch(e){}
+    cfg.salary = Number(cfg.salary) || 0;
+    if(!/^\d{1,2}:\d{2}$/.test(cfg.start)) cfg.start = DEFAULTS.start;
+    if(!/^\d{1,2}:\d{2}$/.test(cfg.end)) cfg.end = DEFAULTS.end;
+    if(!/^\d{1,2}:\d{2}$/.test(cfg.lunchStart)) cfg.lunchStart = DEFAULTS.lunchStart;
+    if(!/^\d{1,2}:\d{2}$/.test(cfg.lunchEnd)) cfg.lunchEnd = DEFAULTS.lunchEnd;
+    if(["double","single","bigsmall"].indexOf(cfg.rest) < 0) cfg.rest = DEFAULTS.rest;
+  }
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(cfg)); }catch(e){} }
+
+  function hm(str){
+    var p = String(str).split(":");
+    return (Number(p[0]) || 0) * 3600 + (Number(p[1]) || 0) * 60;
+  }
+  function pad(n){ return n < 10 ? "0" + n : String(n); }
+  function dur(sec){
+    sec = Math.max(0, Math.floor(sec));
+    return pad(Math.floor(sec / 3600)) + ":" + pad(Math.floor(sec % 3600 / 60)) + ":" + pad(sec % 60);
+  }
+  function money(n){
+    n = Number(n) || 0;
+    return n.toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function pct(p){ return (p * 100).toFixed(p >= 0.995 ? 0 : 1) + "%"; }
+
+  function workDaysOfMonth(rest){
+    var now = new Date(), y = now.getFullYear(), mo = now.getMonth();
+    var d = new Date(y, mo, 1), n = 0;
+    while(d.getMonth() === mo){
+      var w = d.getDay();
+      if(w === 0){}
+      else if(w === 6){
+        if(rest === "single") n += 1;
+        else if(rest === "bigsmall") n += 0.5;
+      }else n += 1;
+      d.setDate(d.getDate() + 1);
+    }
+    return n > 0 ? n : 21.75;
+  }
+
+  function encourage(p){
+    if(p < 0.05) return "刚开始，账户已经在动。";
+    if(p < 0.2)  return "上午最难的一段，进度条会自己走。";
+    if(p < 0.45) return "已经够一顿午饭了。";
+    if(p < 0.6)  return "过半了。剩下的比看起来短。";
+    if(p < 0.8)  return "进入后半段，单价其实没变，只是更想下班。";
+    if(p < 0.95) return "收尾了，别再开新活。";
+    return "最后几分钟，今天的钱基本到手。";
+  }
+
+  var $ = function(id){ return document.getElementById(id); };
+  var el = {
+    amount:$("amount"), perSec:$("perSec"), perHour:$("perHour"),
+    workDaysText:$("workDaysText"), statusText:$("statusText"),
+    barFill:$("barFill"), barLeft:$("barLeft"), barRight:$("barRight"),
+    toEnd:$("toEnd"), leftWork:$("leftWork"), leftPay:$("leftPay"), dayPay:$("dayPay"),
+    tip:$("tip"), liveTag:$("liveTag")
+  };
+
+  function tick(){
+    var now = new Date();
+    var nowSec = now.getHours()*3600 + now.getMinutes()*60 + now.getSeconds() + now.getMilliseconds()/1000;
+    var s0 = hm(cfg.start), s1 = hm(cfg.end);
+    if(s1 <= s0) s1 = s0 + 1;
+    var ls = hm(cfg.lunchStart), le = hm(cfg.lunchEnd);
+    if(le < ls){ var t = ls; ls = le; le = t; }
+    var lunchIn = Math.max(0, Math.min(le, s1) - Math.max(ls, s0));
+    var totalWork = Math.max(1, s1 - s0 - lunchIn);
+    var workDays = workDaysOfMonth(cfg.rest);
+    var dailyPay = cfg.salary / Math.max(1, workDays);
+    var perSec = dailyPay / totalWork;
+    var worked = 0;
+    if(nowSec > s0){
+      var capped = Math.min(nowSec, s1);
+      worked = capped - s0;
+      var overlap = Math.max(0, Math.min(capped, le) - Math.max(ls, s0));
+      worked = Math.max(0, Math.min(totalWork, worked - overlap));
+    }
+    var earned = dailyPay * worked / totalWork;
+    var progress = worked / totalWork;
+
+    el.amount.textContent = "¥" + money(earned);
+    el.perSec.textContent = "¥" + perSec.toFixed(4);
+    el.perHour.textContent = "¥" + money(perSec * 3600);
+    el.workDaysText.textContent = "月工作 " + (workDays % 1 === 0 ? workDays : workDays.toFixed(1)) + " 天";
+    el.barFill.style.width = (progress * 100).toFixed(2) + "%";
+    el.barLeft.textContent = "已工作 " + pct(progress);
+    el.barRight.textContent = "今日目标 ¥" + money(dailyPay);
+    el.toEnd.textContent = nowSec < s1 ? dur(s1 - nowSec) : "已下班";
+    el.leftWork.textContent = dur(Math.max(0, totalWork - worked));
+    el.leftPay.textContent = "¥" + money(Math.max(0, dailyPay - earned));
+    el.dayPay.textContent = "¥" + money(dailyPay);
+
+    if(nowSec < s0){
+      el.statusText.textContent = "还没上班 · 距上班 " + dur(s0 - nowSec);
+      el.liveTag.textContent = "未开始";
+      el.tip.innerHTML = "今天的目标是 <strong>¥" + money(dailyPay) + "</strong>。到点之后金额才会开始跳。";
+    }else if(nowSec >= s1){
+      el.statusText.textContent = "已下班 · 今日到账 ¥" + money(dailyPay);
+      el.liveTag.textContent = "已收工";
+      el.tip.innerHTML = "今天结束了，<strong>¥" + money(dailyPay) + "</strong> 已经到账。剩下的时间归你自己。";
+    }else if(nowSec >= ls && nowSec < le){
+      el.statusText.textContent = "午休中 · 钱包暂停，已赚 ¥" + money(earned);
+      el.liveTag.textContent = "午休";
+      el.tip.innerHTML = "午休不计薪。回来之后从 <strong>¥" + money(earned) + "</strong> 接着涨。";
+    }else{
+      el.statusText.textContent = "上班中 · 每秒 +" + "¥" + perSec.toFixed(4);
+      el.liveTag.textContent = "实时";
+      var coffee = (earned / 9.9).toFixed(1), tea = (earned / 18).toFixed(1);
+      el.tip.innerHTML = encourage(progress) + " ≈ <strong>" + coffee + "</strong> 杯美式 · <strong>" + tea + "</strong> 杯奶茶";
+    }
+  }
+
+  function bind(){
+    var map = { salary:"salary", start:"start", end:"end", lunchStart:"lunchStart", lunchEnd:"lunchEnd", rest:"rest" };
+    Object.keys(map).forEach(function(k){
+      var node = document.getElementById(map[k]);
+      if(!node) return;
+      node.value = cfg[k];
+      var handler = function(){
+        if(k === "salary") cfg.salary = Number(node.value) || 0;
+        else if(k === "rest") cfg.rest = node.value;
+        else{
+          if(!/^\d{1,2}:\d{2}$/.test(node.value)) return;
+          cfg[k] = node.value;
+        }
+        save(); tick();
+      };
+      node.addEventListener("input", handler);
+      node.addEventListener("change", handler);
+    });
+  }
+
+  load(); bind(); tick();
+  (function loop(){ tick(); requestAnimationFrame(loop); })();
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden) tick(); });
+})();
+</script>
+</body>
+</html>
