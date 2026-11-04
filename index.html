@@ -3,21 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>上班鼓励器</title>
-<meta name="description" content="按秒计算今日工资。填写月薪、上下班时间和单双休，金额实时增加，并显示距下班和剩余工作时长。">
-<meta property="og:title" content="上班鼓励器 · 按秒看今天赚了多少">
-<meta property="og:description" content="填月薪和上下班时间，金额按秒跳动。距下班、剩余工作时长、今日还能赚，实时更新。">
-<meta property="og:type" content="website">
+<title>今日生活</title>
+<meta name="description" content="今日生活：按秒看今天赚了多少，再转一下中午吃什么。">
 <style>
   :root{
     --ds:#4D6BFE;
-    --ds-deep:#3B57E8;
     --ink:#1a1d26;
     --muted:#8a909c;
     --line:#eceef3;
-    --bg:#ffffff;
     --page:#f6f7fb;
-    --bubble:#f2f4f8;
     --card:#ffffff;
     --green:#12a56a;
     --gold:#c98412;
@@ -28,14 +22,20 @@
     font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Segoe UI",sans-serif;
     -webkit-font-smoothing:antialiased;
     min-height:100vh;
+    padding:28px 16px 40px;
   }
-  body{
-    min-height:100vh;
-    display:flex;align-items:center;justify-content:center;
-    padding:24px 16px;
+  .page{width:min(1080px,100%);margin:0 auto}
+  .page-title{font-size:22px;font-weight:740;letter-spacing:-.4px}
+  .page-sub{margin-top:4px;font-size:13px;color:var(--muted)}
+  .board{
+    margin-top:16px;
+    display:grid;
+    grid-template-columns:minmax(0,1.25fr) minmax(280px,.85fr);
+    gap:16px;
+    align-items:start;
   }
+  @media(max-width:860px){ .board{grid-template-columns:1fr} }
   .artifact{
-    width:min(760px,100%);
     background:var(--card);
     border:1px solid var(--line);
     border-radius:16px;
@@ -53,7 +53,7 @@
   .label{font-size:12px;color:var(--muted);letter-spacing:.3px}
   .amount{
     margin-top:4px;
-    font-size:clamp(40px,8vw,64px);
+    font-size:clamp(40px,7vw,60px);
     font-weight:760;letter-spacing:-1.5px;line-height:1.05;
     font-variant-numeric:tabular-nums;
     color:var(--ds);
@@ -66,9 +66,7 @@
   .rate b{color:var(--ink);font-weight:650}
   .status{
     margin-top:12px;font-size:13px;color:#3d4454;
-    background:var(--ds-soft,#eef1ff);
-    background:#eef1ff;
-    border-radius:10px;padding:8px 10px;
+    background:#eef1ff;border-radius:10px;padding:8px 10px;
   }
   .bar{height:8px;border-radius:99px;background:#eef0f5;margin-top:14px;overflow:hidden}
   .fill{
@@ -86,7 +84,6 @@
   .mini.pay .v{color:var(--gold)}
   .tip{margin-top:12px;font-size:13px;line-height:1.7;color:#4b5160}
   .tip strong{color:var(--ink);font-weight:650}
-
   details.cfg{border-top:1px solid var(--line);background:#fbfbfd}
   details.cfg summary{
     cursor:pointer;list-style:none;padding:12px 16px;
@@ -94,71 +91,143 @@
   }
   details.cfg summary::-webkit-details-marker{display:none}
   .cfgbody{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 14px}
-  @media(min-width:640px){ .cfgbody{grid-template-columns:repeat(3,1fr)} }
+  @media(min-width:640px){ .pay-card .cfgbody{grid-template-columns:repeat(3,1fr)} }
   label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted)}
-  input,select{
+  input,select,textarea{
     background:#fff;border:1px solid #e3e6ee;color:var(--ink);
     border-radius:10px;padding:9px 10px;font-size:14px;font-family:inherit;outline:none;
     font-variant-numeric:tabular-nums;
   }
-  input:focus,select:focus{border-color:#b7c4ff;box-shadow:0 0 0 3px rgba(77,107,254,.15)}
+  textarea{min-height:120px;resize:vertical;line-height:1.6}
+  input:focus,select:focus,textarea:focus{border-color:#b7c4ff;box-shadow:0 0 0 3px rgba(77,107,254,.15)}
   .hint{padding:0 16px 14px;font-size:12px;line-height:1.65;color:var(--muted)}
+
+  .wheel-wrap{display:flex;flex-direction:column;align-items:center;padding-top:8px}
+  .stage{position:relative;width:280px;height:280px}
+  canvas{width:280px;height:280px;border-radius:50%;display:block}
+  .pointer{
+    position:absolute;left:50%;top:-2px;transform:translateX(-50%);
+    width:0;height:0;
+    border-left:9px solid transparent;
+    border-right:9px solid transparent;
+    border-top:16px solid var(--ink);
+    filter:drop-shadow(0 2px 2px rgba(0,0,0,.12));
+    z-index:2;
+  }
+  .hub{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:54px;height:54px;border-radius:50%;
+    background:#fff;border:1px solid var(--line);
+    box-shadow:0 6px 16px rgba(24,32,64,.08);
+    z-index:1;
+  }
+  .spin{
+    margin-top:16px;
+    appearance:none;border:0;cursor:pointer;
+    background:var(--ds);color:#fff;
+    border-radius:999px;padding:10px 22px;
+    font-size:14px;font-weight:650;font-family:inherit;
+  }
+  .spin:disabled{opacity:.55;cursor:default}
+  .spin:hover:not(:disabled){background:#3d5bf0}
+  .result{
+    margin-top:12px;min-height:28px;
+    font-size:20px;font-weight:740;letter-spacing:-.3px;text-align:center;
+  }
+  .result span{color:var(--muted);font-size:13px;font-weight:500;display:block;margin-bottom:2px}
 </style>
 </head>
 <body>
-      <div class="artifact">
-        <div class="art-bar">
-          <b>上班鼓励器</b>
-          <span><i class="dot"></i><span id="liveTag">实时</span></span>
-        </div>
-        <div class="pad">
-          <div class="label">今日已收入</div>
-          <div class="amount" id="amount">¥0.00</div>
-          <div class="rate">
-            <span>每秒 <b id="perSec">¥0.0000</b></span>
-            <span>每小时 <b id="perHour">¥0.00</b></span>
-            <span id="workDaysText">月工作 0 天</span>
-          </div>
-          <div class="status" id="statusText">正在计算…</div>
-          <div class="bar"><div class="fill" id="barFill"></div></div>
-          <div class="barinfo">
-            <span id="barLeft">已工作 0%</span>
-            <span id="barRight">今日目标 ¥0.00</span>
-          </div>
-          <div class="grid">
-            <div class="mini"><div class="k">距下班</div><div class="v" id="toEnd">--:--:--</div></div>
-            <div class="mini left"><div class="k">剩余工作时长</div><div class="v" id="leftWork">--:--:--</div></div>
-            <div class="mini pay"><div class="k">今日还能赚</div><div class="v" id="leftPay">¥0.00</div></div>
-            <div class="mini"><div class="k">日薪</div><div class="v" id="dayPay">¥0.00</div></div>
-          </div>
-          <div class="tip" id="tip">—</div>
-        </div>
-        <details class="cfg">
-          <summary>设置 · 月薪 / 上下班 / 单双休</summary>
-          <div class="cfgbody">
-            <label>月薪（元）<input id="salary" type="number" min="0" step="500" value="20000"></label>
-            <label>上班时间<input id="start" type="time" value="09:00"></label>
-            <label>下班时间<input id="end" type="time" value="18:00"></label>
-            <label>午休开始<input id="lunchStart" type="time" value="12:00"></label>
-            <label>午休结束<input id="lunchEnd" type="time" value="13:00"></label>
-            <label>休息制度
-              <select id="rest">
-                <option value="double">双休（周末全休）</option>
-                <option value="single">单休（周日休）</option>
-                <option value="bigsmall">大小周</option>
-              </select>
-            </label>
-          </div>
-          <div class="hint">日薪 = 月薪 ÷ 本月实际工作天数。双休算周一至周五，单休算周一至周六，大小周的周六算半天。午休不计薪。</div>
-        </details>
+<div class="page">
+  <div class="page-title">今日生活</div>
+  <div class="page-sub">工钱按秒走，午饭交给转盘</div>
+  <div class="board">
+    <div class="artifact pay-card">
+      <div class="art-bar">
+        <b>上班鼓励器</b>
+        <span><i class="dot"></i><span id="liveTag">实时</span></span>
       </div>
+      <div class="pad">
+        <div class="label">今日已收入</div>
+        <div class="amount" id="amount">¥0.00</div>
+        <div class="rate">
+          <span>每秒 <b id="perSec">¥0.0000</b></span>
+          <span>每小时 <b id="perHour">¥0.00</b></span>
+          <span id="workDaysText">月工作 0 天</span>
+        </div>
+        <div class="status" id="statusText">正在计算…</div>
+        <div class="bar"><div class="fill" id="barFill"></div></div>
+        <div class="barinfo">
+          <span id="barLeft">已工作 0%</span>
+          <span id="barRight">今日目标 ¥0.00</span>
+        </div>
+        <div class="grid">
+          <div class="mini"><div class="k">距下班</div><div class="v" id="toEnd">--:--:--</div></div>
+          <div class="mini left"><div class="k">剩余工作时长</div><div class="v" id="leftWork">--:--:--</div></div>
+          <div class="mini pay"><div class="k">今日还能赚</div><div class="v" id="leftPay">¥0.00</div></div>
+          <div class="mini"><div class="k">日薪</div><div class="v" id="dayPay">¥0.00</div></div>
+        </div>
+        <div class="tip" id="tip">—</div>
+      </div>
+      <details class="cfg">
+        <summary>设置 · 月薪 / 上下班 / 单双休</summary>
+        <div class="cfgbody">
+          <label>月薪（元）<input id="salary" type="number" min="0" step="500" value="20000"></label>
+          <label>上班时间<input id="start" type="time" value="09:00"></label>
+          <label>下班时间<input id="end" type="time" value="18:00"></label>
+          <label>午休开始<input id="lunchStart" type="time" value="12:00"></label>
+          <label>午休结束<input id="lunchEnd" type="time" value="13:00"></label>
+          <label>休息制度
+            <select id="rest">
+              <option value="double">双休（周末全休）</option>
+              <option value="single">单休（周日休）</option>
+              <option value="bigsmall">大小周</option>
+            </select>
+          </label>
+        </div>
+        <div class="hint">日薪 = 月薪 ÷ 本月实际工作天数。双休算周一至周五，单休算周一至周六，大小周的周六算半天。午休不计薪。</div>
+      </details>
+    </div>
+
+    <div class="artifact">
+      <div class="art-bar">
+        <b>今天中午吃什么</b>
+        <span id="foodCount">10 个选项</span>
+      </div>
+      <div class="pad">
+        <div class="wheel-wrap">
+          <div class="stage">
+            <div class="pointer"></div>
+            <canvas id="wheel" width="560" height="560"></canvas>
+            <div class="hub"></div>
+          </div>
+          <button class="spin" id="spinBtn" type="button">转一下</button>
+          <div class="result" id="lunchResult"><span>指针停在哪就吃哪</span>还没转</div>
+        </div>
+      </div>
+      <details class="cfg">
+        <summary>改菜单 · 一行一个</summary>
+        <div class="cfgbody" style="grid-template-columns:1fr">
+          <label>午饭选项
+            <textarea id="foods"></textarea>
+          </label>
+        </div>
+        <div class="hint">至少留 2 项。改完立刻生效，存在这台浏览器里。</div>
+      </details>
+    </div>
+  </div>
+</div>
 
 <script>
 (function(){
   "use strict";
   var KEY = "shangban-guliqi-v1";
+  var FOOD_KEY = "today-life-foods-v1";
   var DEFAULTS = { salary:20000, start:"09:00", end:"18:00", lunchStart:"12:00", lunchEnd:"13:00", rest:"double" };
+  var DEFAULT_FOODS = ["麻辣烫","黄焖鸡米饭","兰州拉面","沙县小吃","盖浇饭","过桥米线","饺子","汉堡","轻食沙拉","煲仔饭"];
+  var COLORS = ["#4D6BFE","#F0A04B","#3DBE8B","#E36B8A","#7C6BF0","#3EC6C6","#F08A5D","#5B8DEF","#C98412","#12A56A"];
   var cfg = Object.assign({}, DEFAULTS);
+  var foods = DEFAULT_FOODS.slice();
 
   function load(){
     try{
@@ -178,8 +247,13 @@
     if(!/^\d{1,2}:\d{2}$/.test(cfg.lunchStart)) cfg.lunchStart = DEFAULTS.lunchStart;
     if(!/^\d{1,2}:\d{2}$/.test(cfg.lunchEnd)) cfg.lunchEnd = DEFAULTS.lunchEnd;
     if(["double","single","bigsmall"].indexOf(cfg.rest) < 0) cfg.rest = DEFAULTS.rest;
+    try{
+      var saved = JSON.parse(localStorage.getItem(FOOD_KEY) || "null");
+      if(Array.isArray(saved) && saved.length >= 2) foods = saved;
+    }catch(e){}
   }
   function save(){ try{ localStorage.setItem(KEY, JSON.stringify(cfg)); }catch(e){} }
+  function saveFoods(){ try{ localStorage.setItem(FOOD_KEY, JSON.stringify(foods)); }catch(e){} }
 
   function hm(str){
     var p = String(str).split(":");
@@ -284,7 +358,7 @@
     }
   }
 
-  function bind(){
+  function bindPay(){
     var map = { salary:"salary", start:"start", end:"end", lunchStart:"lunchStart", lunchEnd:"lunchEnd", rest:"rest" };
     Object.keys(map).forEach(function(k){
       var node = document.getElementById(map[k]);
@@ -304,7 +378,140 @@
     });
   }
 
-  load(); bind(); tick();
+  /* ---------- 午饭转盘 ---------- */
+  var canvas = $("wheel");
+  var ctx = canvas.getContext("2d");
+  var angle = 0;
+  var spinning = false;
+  var foodBox = $("foods");
+  var spinBtn = $("spinBtn");
+  var resultEl = $("lunchResult");
+  var countEl = $("foodCount");
+
+  function parseFoods(text){
+    var list = String(text || "").split(/\n+/).map(function(s){ return s.trim(); }).filter(Boolean);
+    var seen = {};
+    var out = [];
+    list.forEach(function(name){
+      if(seen[name] || name.length > 12) return;
+      seen[name] = 1;
+      out.push(name);
+    });
+    return out.length >= 2 ? out.slice(0, 16) : null;
+  }
+
+  function draw(){
+    var size = 280;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var n = foods.length;
+    var slice = Math.PI * 2 / n;
+    var cx = size / 2, cy = size / 2, r = size / 2 - 2;
+    ctx.clearRect(0, 0, size, size);
+    for(var i = 0; i < n; i++){
+      var a0 = -Math.PI / 2 + angle * Math.PI / 180 + i * slice;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, a0, a0 + slice);
+      ctx.closePath();
+      ctx.fillStyle = COLORS[i % COLORS.length];
+      ctx.fill();
+      var mid = a0 + slice / 2;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(mid);
+      ctx.fillStyle = "#fff";
+      ctx.font = "600 13px -apple-system, PingFang SC, sans-serif";
+      ctx.textBaseline = "middle";
+      var label = foods[i];
+      if(label.length > 6) label = label.slice(0, 6);
+      if(Math.cos(mid) < 0){
+        ctx.rotate(Math.PI);
+        ctx.textAlign = "left";
+        ctx.fillText(label, -(r - 16), 0);
+      }else{
+        ctx.textAlign = "right";
+        ctx.fillText(label, r - 16, 0);
+      }
+      ctx.restore();
+    }
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+  }
+
+  function setFoods(list, writeBox){
+    foods = list;
+    countEl.textContent = foods.length + " 个选项";
+    if(writeBox) foodBox.value = foods.join("\n");
+    saveFoods();
+    draw();
+  }
+
+  function winnerIndex(finalAngle){
+    var n = foods.length;
+    var slice = 360 / n;
+    var rel = ((-finalAngle % 360) + 360) % 360;
+    return Math.floor(rel / slice) % n;
+  }
+
+  function spin(){
+    if(spinning || foods.length < 2) return;
+    spinning = true;
+    spinBtn.disabled = true;
+    var n = foods.length;
+    var index = Math.floor(Math.random() * n);
+    var slice = 360 / n;
+    var finalMod = (360 - (index + 0.5) * slice) % 360;
+    var currentMod = ((angle % 360) + 360) % 360;
+    var delta = (finalMod - currentMod + 360) % 360;
+    var from = angle;
+    var target = angle + 360 * 5 + delta;
+    var t0 = performance.now();
+    var durMs = 4200;
+    resultEl.innerHTML = "<span>正在转</span>…";
+    function frame(now){
+      var t = Math.min(1, (now - t0) / durMs);
+      var eased = 1 - Math.pow(1 - t, 3);
+      angle = from + (target - from) * eased;
+      draw();
+      if(t < 1){
+        requestAnimationFrame(frame);
+      }else{
+        angle = target;
+        draw();
+        var hit = foods[winnerIndex(angle)];
+        resultEl.innerHTML = "<span>今天中午</span>" + hit;
+        spinning = false;
+        spinBtn.disabled = false;
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  foodBox.value = foods.join("\n");
+  foodBox.addEventListener("input", function(){
+    var next = parseFoods(foodBox.value);
+    if(!next){
+      countEl.textContent = "至少 2 项";
+      return;
+    }
+    foods = next;
+    countEl.textContent = foods.length + " 个选项";
+    saveFoods();
+    draw();
+  });
+  spinBtn.addEventListener("click", spin);
+
+  load();
+  bindPay();
+  setFoods(foods, true);
+  tick();
+  draw();
   (function loop(){ tick(); requestAnimationFrame(loop); })();
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) tick(); });
 })();
